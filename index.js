@@ -30,6 +30,7 @@ app.use (bodyParser.json());
 app.get ('/', (req, res) => {
     collection.getAll()
     .then ( data => {
+    	console.log(data);
         res.render('index.vue', {
 					data : {
 						collection : data
@@ -37,9 +38,11 @@ app.get ('/', (req, res) => {
 					vue : {
 						head : {
 							title : 'Color Pro',
-							meta : []
+							meta : [
+								{ style: '/public/css/style.css', type: 'text/css', rel: 'stylesheet' }
+							]
 						},
-						components : ['collection']
+						components : ['headerme','collection']
 					}
 				});
     });

@@ -1,15 +1,16 @@
 const cn = require ('./connect');
 const analyse_setting = require ("./analyse_setting");
-const mapping_setting = require ("./mapping_setting")
+const mapping_setting = require ("./mapping_setting");
+const Promise = require('bluebird');
 
 class elastic {
 	constructor () {
 		this.elas = cn;
-    }
+	}
 
 	createIndex (index, cb) {
 		let setting = analyse_setting();
-		let mapping = mapping_setting(); 
+		let mapping = mapping_setting();
 		this.elas.indices.create ({
 			index : index,
 			body  : {
@@ -52,57 +53,61 @@ class elastic {
 		})
 	}
 
-	searchAll ( index, type, cb ) {
-		this.elas.search ({
-			index : index,
-			type : type,
-			body : {
-				"from"  : 0,
-				"size"  : 50,
-				"query" : {
-					"match_all" : {}
-				}	
-			}
-		} , ( err, res, stt) => {
-			if (err) {
-				cb (err.message);
-			} else {
-				let products = [];
-				res.hits.hits.forEach ( (product) => {
-					products.push ( product["_source"] );
-				});
-				cb(null, products);
-			}
-		});
-	}
-
-	search ( index, type, term, cb ) {
-		let fields = this.setTypeFields (type);		
-		this.elas.search ({
-			index : index,
-			type  : type,
-			body  : {
-				"from"  : 0,
-				"size"  : 50,
-				query   : {
-					"multi_match" : {
-						"query"  	 : term,
-						"type" 	 	 : "best_fields",
-						"fields" 	 : fields,
-						"tie_breaker" : 0.3
+	searchAll ( index, type ) {
+		return new Promise( ( resolve, reject ) => {
+			this.elas.search ({
+				index : index,
+				type : type,
+				body : {
+					"from"  : 0,
+					"size"  : 30,
+					"query" : {
+						"match_all" : {}
 					}
 				}
-			}
-		}, (error, response, status) => {
-			if (error) {
-				cb ( error.message );
-			} else {
-				let products = [];
-				response.hits.hits.forEach ( (product) => {
-					products.push ( product["_source"] );
-				});
-				cb ( null, products );
-			}
+			} , ( err, res, stt) => {
+				if (err) {
+					reject (err.message);
+				} else {
+					let products = [];
+					res.hits.hits.forEach ( (product) => {
+						products.push ( product["_source"] );
+					});
+					resolve ( products );
+				}
+			});
+		})
+	}
+
+	search ( index, type, term ) {
+		return new Promise( ( resolve, reject ) => {
+			let fields = this.setTypeFields (type);
+			this.elas.search ({
+				index : index,
+				type  : type,
+				body  : {
+					"from"  : 0,
+					"size"  : 50,
+					query   : {
+						"multi_match" : {
+							"query"  	 : term,
+							"type" 	 	 : "best_fields",
+							"fields" 	 : fields,
+							"tie_breaker" : 0.3
+						}
+					}
+				}
+			}, (error, response, status) => {
+				if (error) {
+					reject ( error.message );
+				} else {
+					let products = [];
+					response.hits.hits.forEach ( (product) => {
+						products.push ( product["_source"] );
+					});
+					resolve ( products );
+				}
+			});
 		});
 	}
 
@@ -111,7 +116,7 @@ class elastic {
 		switch (type) {
 			case "location" :
 				return [ "name", "address" ];
-			case "image"    : 
+			case "image"    :
 				return [ "id_location" ];
 			case "district" :
 				return [ "id_district" ];

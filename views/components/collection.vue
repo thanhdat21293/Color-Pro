@@ -1,8 +1,12 @@
 <template lang="html">
 	<div class="collection">
         <div v-for="collec in collection">
-            <span>Author : {{collec.author}}</span>
-            <a href="#"><div style="width: 50px;height: 50px background-color: {{collect.array[0]}}"></div></a>
+            <div class="col-sm-2">
+                <h4>{{collec.name}}</h4>
+            </div>
+            <div class="col-sm-10">
+                <span v-for="color in collec.array" :data-clipboard-text="color"  class= "divcolor" v-bind:style="{ backgroundColor: color }"></span>
+            </div>
         </div>
 	</div>
 </template>

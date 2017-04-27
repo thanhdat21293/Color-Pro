@@ -1,6 +1,12 @@
 <template>
-        <button class="btn" data-clipboard-text="NGUYEN">CLICK TO GET MY NAME</button>
-        <collection :collection="collection"></collection>
+        <div class="container">
+                <div class="col-sm-12">
+                        <div class="row">
+                                <headerme></headerme>
+                                <collection :collection="collection" :popup="popup"></collection>
+                        </div>
+                </div>
+        </div>
 </template>
 
 <script>
@@ -8,8 +14,10 @@
 		data() {
             collection : []
         },
+            ready() {
+                    new Clipboard('.divcolor');
+            },
         methods : {
-
         }
 	}
 </script>
